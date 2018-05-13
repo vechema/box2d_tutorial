@@ -14,38 +14,34 @@ public class B2dModel {
     private Body bodyd;
     private Body bodys;
     private Body bodyk;
+    private Body player;
+
+    public boolean isSwimming = false;
 
     public B2dModel() {
         world = new World(new Vector2(0, -10f),true);
+        world.setContactListener(new B2dContactListener(this));
         createFloor();
-        createObject();
-        createMovingObject();
+        //createObject();
+        //createMovingObject();
 
         // get our body factory singleton
         BodyFactory bodyFactory = BodyFactory.getInstance(world);
 
-        // Add rubber ball at 1, 1 (middle)
-        bodyFactory.makeCirclePolyBody(1,1,1,BodyFactory.RUBBER, BodyType.DynamicBody, false);
+        // Add a player
+        player = bodyFactory.makeBoxPolyBody(1,1,2,2,BodyFactory.RUBBER, BodyType.DynamicBody, false);
 
-        // Add steel ball at 4, 1 (right)
-        bodyFactory.makeCirclePolyBody(4,1,1,BodyFactory.STEEL, BodyType.DynamicBody,false);
+        // Add some water
+        Body water = bodyFactory.makeBoxPolyBody(1,-8,40,4, BodyFactory.RUBBER, BodyType.StaticBody,false);
+        water.setUserData("IAMTHESEA");
 
-        // add stone ball at -4, 1 (left)
-        bodyFactory.makeCirclePolyBody(-4,1,1,BodyFactory.STONE, BodyType.DynamicBody);
-
-        // add wood wall
-        bodyFactory.makeBoxPolyBody(5,5,2,4,BodyFactory.WOOD, BodyType.StaticBody, false);
-
-        // Add polygon/pentagon platform
-        Vector2[] vertices = new Vector2[5];
-        vertices[0] = new Vector2(1,0);
-        vertices[1] = new Vector2(0,3);
-        vertices[2] = new Vector2(2.5f,5);
-        vertices[3] = new Vector2(5,3);
-        vertices[4] = new Vector2(4,0);
-        bodyFactory.makePolygonShapeBody(vertices, -3, 4,BodyFactory.STONE,BodyType.KinematicBody);
+        // mat. the water a sensor so it doesn't obstruct our player
+        bodyFactory.makeAllFixturesSensors(water);
     }
     public void logicStep(float delta) {
+        if(isSwimming) {
+            player.applyForceToCenter(0,50,true);
+        }
         world.step(delta, 3, 3);
     }
 
