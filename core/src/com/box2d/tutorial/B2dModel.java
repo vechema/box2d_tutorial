@@ -1,6 +1,6 @@
 package com.box2d.tutorial;
 
-import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -11,6 +11,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.box2d.tutorial.controller.KeyboardController;
+import com.box2d.tutorial.loader.B2dAssetManager;
 
 public class B2dModel {
 
@@ -18,20 +19,33 @@ public class B2dModel {
     private Body bodyd;
     private Body bodys;
     private Body bodyk;
+
     private KeyboardController controller;
     private OrthographicCamera camera;
+    private B2dAssetManager assMan;
 
-    private Body player;
+    public Body player;
     public boolean isSwimming = false;
 
-    public B2dModel(KeyboardController controller, OrthographicCamera camera) {
+    public Sound boing;
+    public Sound ping;
+    public static final int BOING_SOUND = 0;
+    public static final int PING_SOUND = 1;
+
+    public B2dModel(KeyboardController controller, OrthographicCamera camera, B2dAssetManager assetManager) {
         this.camera = camera;
         this.controller = controller;
+        this.assMan = assetManager;
         world = new World(new Vector2(0, -10f),true);
         world.setContactListener(new B2dContactListener(this));
         createFloor();
         //createObject();
         //createMovingObject();
+
+        assMan.queueAddSounds();
+        assMan.manager.finishLoading();
+        ping = assMan.manager.get("sounds/ping.wav");
+        boing = assMan.manager.get("sounds/boing.wav");
 
         // get our body factory singleton
         BodyFactory bodyFactory = BodyFactory.getInstance(world);
@@ -146,5 +160,16 @@ public class B2dModel {
         shape.dispose();
 
         bodyk.setLinearVelocity(0, 0.75f);
+    }
+
+    public void playSound(int sound) {
+        switch (sound) {
+            case BOING_SOUND:
+                boing.play();
+                break;
+            case PING_SOUND:
+                ping.play();
+                break;
+        }
     }
 }

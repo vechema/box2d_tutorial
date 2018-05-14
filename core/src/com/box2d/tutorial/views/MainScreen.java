@@ -6,6 +6,8 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.box2d.tutorial.B2dModel;
 import com.box2d.tutorial.Box2DTutorial;
@@ -18,13 +20,22 @@ public class MainScreen implements Screen {
     private OrthographicCamera cam;
     private Box2DDebugRenderer debugRenderer;
     private KeyboardController controller;
+    private Texture playerTex;
+    private SpriteBatch sb;
 
     public MainScreen(Box2DTutorial box2DTutorial) {
         this.parent = box2DTutorial;
         controller = new KeyboardController();
         cam = new OrthographicCamera(32,24);
-        model = new B2dModel(controller, cam);
+        model = new B2dModel(controller, cam, parent.assMan);
         debugRenderer = new Box2DDebugRenderer(true,true,true,true,true,true);
+
+        parent.assMan.queueAddImages();
+        parent.assMan.manager.finishLoading();
+        playerTex = parent.assMan.manager.get("images/player.png");
+
+        sb = new SpriteBatch();
+        sb.setProjectionMatrix(cam.combined);
     }
     @Override
     public void show() {
@@ -37,6 +48,10 @@ public class MainScreen implements Screen {
         Gdx.gl.glClearColor(0f, 0f, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         debugRenderer.render(model.world, cam.combined);
+
+        sb.begin();
+        sb.draw(playerTex, model.player.getPosition().x-1, model.player.getPosition().y-1,2,2);
+        sb.end();
     }
 
     @Override
