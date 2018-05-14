@@ -1,13 +1,12 @@
 package com.box2d.tutorial.views;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.box2d.tutorial.B2dModel;
 import com.box2d.tutorial.Box2DTutorial;
@@ -20,8 +19,9 @@ public class MainScreen implements Screen {
     private OrthographicCamera cam;
     private Box2DDebugRenderer debugRenderer;
     private KeyboardController controller;
-    private Texture playerTex;
+    private AtlasRegion playerTex;
     private SpriteBatch sb;
+    private TextureAtlas atlas;
 
     public MainScreen(Box2DTutorial box2DTutorial) {
         this.parent = box2DTutorial;
@@ -30,12 +30,11 @@ public class MainScreen implements Screen {
         model = new B2dModel(controller, cam, parent.assMan);
         debugRenderer = new Box2DDebugRenderer(true,true,true,true,true,true);
 
-        parent.assMan.queueAddImages();
-        parent.assMan.manager.finishLoading();
-        playerTex = parent.assMan.manager.get("images/player.png");
-
         sb = new SpriteBatch();
         sb.setProjectionMatrix(cam.combined);
+
+        atlas = parent.assMan.manager.get("images/game.atlas");
+        playerTex = atlas.findRegion("player");
     }
     @Override
     public void show() {
