@@ -16,8 +16,8 @@ public class ZComparator implements Comparator<Entity> {
 
     @Override
     public int compare(Entity entityA, Entity entityB) {
-        float az = cmTrans.get(entityA).positon.z;
-        float bz = cmTrans.get(entityB).positon.z;
+        float az = cmTrans.get(entityA).position.z;
+        float bz = cmTrans.get(entityB).position.z;
         return Float.compare(az,bz);
     }
 }

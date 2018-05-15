@@ -41,7 +41,7 @@ public class LoadingScreen implements Screen {
     private int currentLoadingStage = 0;
 
     // timer for exiting loading screen
-    public float countDown = 5f; // 5 seconds of waiting before menu screen
+    public float countDown = 1f; // 1 second of waiting before menu screen
 
     public LoadingScreen(Box2DTutorial box2DTutorial) {
         this.parent = box2DTutorial;

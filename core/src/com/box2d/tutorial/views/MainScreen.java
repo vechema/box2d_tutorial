@@ -9,15 +9,13 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.box2d.tutorial.B2dContactListener;
-import com.box2d.tutorial.B2dModel;
 import com.box2d.tutorial.BodyFactory;
 import com.box2d.tutorial.Box2DTutorial;
+import com.box2d.tutorial.LevelFactory;
 import com.box2d.tutorial.controller.KeyboardController;
 import com.box2d.tutorial.entity.components.B2dBodyComponent;
 import com.box2d.tutorial.entity.components.CollisionComponent;
@@ -28,6 +26,7 @@ import com.box2d.tutorial.entity.components.TransformComponent;
 import com.box2d.tutorial.entity.components.TypeComponent;
 import com.box2d.tutorial.entity.systems.AnimationSystem;
 import com.box2d.tutorial.entity.systems.CollisionSystem;
+import com.box2d.tutorial.entity.systems.LevelGenerationSystem;
 import com.box2d.tutorial.entity.systems.PhysicsDebugSystem;
 import com.box2d.tutorial.entity.systems.PhysicsSystem;
 import com.box2d.tutorial.entity.systems.PlayerControlSystem;
@@ -36,118 +35,43 @@ import com.box2d.tutorial.entity.systems.RenderingSystem;
 public class MainScreen implements Screen {
 
     private Box2DTutorial parent;
-    private B2dModel model;
     private OrthographicCamera cam;
-    private Box2DDebugRenderer debugRenderer;
     private KeyboardController controller;
-    private AtlasRegion playerTex;
     private SpriteBatch sb;
-    private TextureAtlas atlas;
-    private World world;
-    private BodyFactory bodyFactory;
+    private PooledEngine engine;
+    private LevelFactory lvlFactory;
+
     private Sound ping;
     private Sound boing;
-    private PooledEngine engine;
+    private TextureAtlas atlas;
 
     public MainScreen(Box2DTutorial box2DTutorial) {
         parent = box2DTutorial;
-        controller = new KeyboardController();
-        world = new World(new Vector2(0,-10f),true);
-        world.setContactListener(new B2dContactListener());
-        bodyFactory = BodyFactory.getInstance(world);
-
         parent.assMan.queueAddSounds();
         parent.assMan.manager.finishLoading();
         atlas = parent.assMan.manager.get("images/game.atlas", TextureAtlas.class);
         ping = parent.assMan.manager.get("sounds/ping.wav", Sound.class);
         boing = parent.assMan.manager.get("sounds/boing.wav", Sound.class);
+        controller = new KeyboardController();
+        engine = new PooledEngine();
+        lvlFactory = new LevelFactory(engine, atlas.findRegion("player"));
 
         sb = new SpriteBatch();
         RenderingSystem renderingSystem = new RenderingSystem(sb);
         cam = renderingSystem.getCamera();
         sb.setProjectionMatrix(cam.combined);
 
-        engine = new PooledEngine();
-
         engine.addSystem(new AnimationSystem());
         engine.addSystem(renderingSystem);
-        engine.addSystem(new PhysicsSystem(world));
-        engine.addSystem(new PhysicsDebugSystem(world, renderingSystem.getCamera()));
+        engine.addSystem(new PhysicsSystem(lvlFactory.world));
+        engine.addSystem(new PhysicsDebugSystem(lvlFactory.world, renderingSystem.getCamera()));
         engine.addSystem(new CollisionSystem());
         engine.addSystem(new PlayerControlSystem(controller));
+        engine.addSystem(new LevelGenerationSystem(lvlFactory));
 
         // create some game objects
-        createPlayer();
-        createPlatform(2,2);
-        createPlatform(2,7);
-        createPlatform(7,2);
-        createPlatform(7,7);
-        createFloor();
-    }
-
-    private void createPlayer() {
-
-        // Entity + components
-        Entity entity = engine.createEntity();
-        B2dBodyComponent b2dbody = engine.createComponent(B2dBodyComponent.class);
-        TransformComponent position = engine.createComponent(TransformComponent.class);
-        TextureComponent texture = engine.createComponent(TextureComponent.class);
-        PlayerComponent player = engine.createComponent(PlayerComponent.class);
-        CollisionComponent colComp = engine.createComponent(CollisionComponent.class);
-        TypeComponent type = engine.createComponent(TypeComponent.class);
-        StateComponent stateCom = engine.createComponent(StateComponent.class);
-
-        b2dbody.body = bodyFactory.makeCirclePolyBody(5,5,0.5f,BodyFactory.STONE, BodyType.DynamicBody, true);
-        position.positon.set(10,10,0);
-        texture.region = atlas.findRegion("player");
-        type.type = TypeComponent.PLAYER;
-        stateCom.set(StateComponent.STATE_NORMAL);
-        b2dbody.body.setUserData(entity);
-
-        entity.add(b2dbody);
-        entity.add(position);
-        entity.add(texture);
-        entity.add(player);
-        entity.add(colComp);
-        entity.add(type);
-        entity.add(stateCom);
-
-        engine.addEntity(entity);
-    }
-
-    private void createPlatform(float x, float y){
-        Entity entity = engine.createEntity();
-        B2dBodyComponent b2dbody = engine.createComponent(B2dBodyComponent.class);
-        b2dbody.body = bodyFactory.makeBoxPolyBody(x, y, 3, 0.2f, BodyFactory.STONE, BodyType.StaticBody);
-        TextureComponent texture = engine.createComponent(TextureComponent.class);
-        texture.region = atlas.findRegion("player");
-        TypeComponent type = engine.createComponent(TypeComponent.class);
-        type.type = TypeComponent.SCENERY;
-        b2dbody.body.setUserData(entity);
-
-        entity.add(b2dbody);
-        entity.add(texture);
-        entity.add(type);
-
-        engine.addEntity(entity);
-    }
-
-    private void createFloor(){
-        Entity entity = engine.createEntity();
-        B2dBodyComponent b2dbody = engine.createComponent(B2dBodyComponent.class);
-        b2dbody.body = bodyFactory.makeBoxPolyBody(0, 0, 100, 0.2f, BodyFactory.STONE, BodyType.StaticBody);
-        TextureComponent texture = engine.createComponent(TextureComponent.class);
-        texture.region = atlas.findRegion("player");
-        TypeComponent type = engine.createComponent(TypeComponent.class);
-        type.type = TypeComponent.SCENERY;
-
-        b2dbody.body.setUserData(entity);
-
-        entity.add(b2dbody);
-        entity.add(texture);
-        entity.add(type);
-
-        engine.addEntity(entity);
+        lvlFactory.createPlayer(atlas.findRegion("player"),cam);
+        lvlFactory.createFloor(atlas.findRegion("player"));
     }
 
     @Override
