@@ -92,6 +92,10 @@ public class BodyFactory {
         return boxBody;
     }
 
+    public Body makeBoxPolyBody(float posx, float posy, float width, float height,int material, BodyType bodyType){
+        return makeBoxPolyBody(posx, posy, width, height, material, bodyType, false);
+    }
+
     public Body makeBoxPolyBody(float posx, float posy, float width, float height, int material,
         BodyType bodyType, boolean fixedRotation) {
         // create the definition

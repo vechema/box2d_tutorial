@@ -37,7 +37,7 @@ public class B2dModel {
         this.controller = controller;
         this.assMan = assetManager;
         world = new World(new Vector2(0, -10f),true);
-        world.setContactListener(new B2dContactListener(this));
+        world.setContactListener(new B2dContactListener());
         createFloor();
         //createObject();
         //createMovingObject();
