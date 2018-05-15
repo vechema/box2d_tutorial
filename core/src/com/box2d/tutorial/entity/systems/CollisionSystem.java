@@ -34,18 +34,30 @@ public class CollisionSystem extends IteratingSystem {
                     case TypeComponent.ENEMY:
                         // player hit enemy
                         System.out.println("player hit enemy");
+                        PlayerComponent pl = pm.get(entity);
+                        pl.isDead = true;
+                        int score = (int) pl.cam.position.y;
+                        System.out.println("Score = " + score);
                         break;
                     case TypeComponent.SCENERY:
                         // player hit scenery
                         System.out.println("player hit scenery");
+                        pm.get(entity).onPlatform = true;
                         break;
+                    case TypeComponent.SPRING:
+                        // player hit spring
+                        pm.get(entity).onSpring = true;
                     case TypeComponent.OTHER:
                         // player hit other
                         System.out.println("player hit other");
                         break;
+                    default:
+                        System.out.println("No matching type found");
                 }
                 // Collision handled -> reset component
                 cc.collisionEntity = null;
+            } else {
+                System.out.println("type == null");
             }
         }
     }

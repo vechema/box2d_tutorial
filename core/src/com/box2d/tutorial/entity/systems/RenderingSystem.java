@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.box2d.tutorial.entity.components.PlayerComponent;
 import com.box2d.tutorial.entity.components.TextureComponent;
 import com.box2d.tutorial.entity.components.TransformComponent;
 
@@ -17,7 +18,7 @@ import java.util.Comparator;
 public class RenderingSystem extends SortedIteratingSystem {
 
     // Amount of pixels each meter of box2d objects contains
-    static final float PPM = 32.0f;
+    public static final float PPM = 32.0f;
 
     // this gets the height and width of our camera frustrum based off the width and height of the screen and our pixel per meter ratio
     static final float FRUSTUM_WIDTH = Gdx.graphics.getWidth()/PPM;
@@ -57,13 +58,17 @@ public class RenderingSystem extends SortedIteratingSystem {
     // Get components from entities
     private ComponentMapper<TextureComponent> textureM;
     private ComponentMapper<TransformComponent> transformM;
+    private ComponentMapper<PlayerComponent> playerM;
 
     @SuppressWarnings("unchecked")
     public RenderingSystem(SpriteBatch batch) {
-        super(Family.all(TransformComponent.class, TextureComponent.class).get(), new ZComparator());
+        super(Family.all(TransformComponent.class,
+                TextureComponent.class,
+                PlayerComponent.class).get(), new ZComparator());
 
         textureM = ComponentMapper.getFor(TextureComponent.class);
         transformM = ComponentMapper.getFor(TransformComponent.class);
+        playerM = ComponentMapper.getFor(PlayerComponent.class);
 
         renderQueue = new Array<Entity>();
 
@@ -89,6 +94,7 @@ public class RenderingSystem extends SortedIteratingSystem {
         for (Entity entity : renderQueue) {
             TextureComponent tex = textureM.get(entity);
             TransformComponent t = transformM.get(entity);
+            PlayerComponent player = playerM.get(entity);
 
             if(tex.region == null || t.isHidden) {
                 continue;
@@ -99,6 +105,10 @@ public class RenderingSystem extends SortedIteratingSystem {
 
             float originX = width/2f;
             float originY = height/2f;
+
+            if(player != null) {
+                cam.position.lerp(t.position, 0.1f);
+            }
 
             batch.draw(tex.region,
                     t.position.x - originX, t.position.y - originY,

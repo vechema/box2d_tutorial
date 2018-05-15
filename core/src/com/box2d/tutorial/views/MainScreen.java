@@ -9,21 +9,11 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
-import com.badlogic.gdx.physics.box2d.World;
-import com.box2d.tutorial.B2dContactListener;
-import com.box2d.tutorial.BodyFactory;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.box2d.tutorial.Box2DTutorial;
+import com.box2d.tutorial.DFUtils;
 import com.box2d.tutorial.LevelFactory;
 import com.box2d.tutorial.controller.KeyboardController;
-import com.box2d.tutorial.entity.components.B2dBodyComponent;
-import com.box2d.tutorial.entity.components.CollisionComponent;
-import com.box2d.tutorial.entity.components.PlayerComponent;
-import com.box2d.tutorial.entity.components.StateComponent;
-import com.box2d.tutorial.entity.components.TextureComponent;
-import com.box2d.tutorial.entity.components.TransformComponent;
-import com.box2d.tutorial.entity.components.TypeComponent;
 import com.box2d.tutorial.entity.systems.AnimationSystem;
 import com.box2d.tutorial.entity.systems.CollisionSystem;
 import com.box2d.tutorial.entity.systems.LevelGenerationSystem;
@@ -31,6 +21,8 @@ import com.box2d.tutorial.entity.systems.PhysicsDebugSystem;
 import com.box2d.tutorial.entity.systems.PhysicsSystem;
 import com.box2d.tutorial.entity.systems.PlayerControlSystem;
 import com.box2d.tutorial.entity.systems.RenderingSystem;
+import com.box2d.tutorial.entity.systems.WallSystem;
+import com.box2d.tutorial.entity.systems.WaterFloorSystem;
 
 public class MainScreen implements Screen {
 
@@ -40,6 +32,7 @@ public class MainScreen implements Screen {
     private SpriteBatch sb;
     private PooledEngine engine;
     private LevelFactory lvlFactory;
+    private Entity player;
 
     private Sound ping;
     private Sound boing;
@@ -62,16 +55,31 @@ public class MainScreen implements Screen {
         sb.setProjectionMatrix(cam.combined);
 
         engine.addSystem(new AnimationSystem());
-        engine.addSystem(renderingSystem);
         engine.addSystem(new PhysicsSystem(lvlFactory.world));
+        engine.addSystem(renderingSystem);
         engine.addSystem(new PhysicsDebugSystem(lvlFactory.world, renderingSystem.getCamera()));
         engine.addSystem(new CollisionSystem());
         engine.addSystem(new PlayerControlSystem(controller));
+        player = lvlFactory.createPlayer(atlas.findRegion("player"),cam);
+        engine.addSystem(new WallSystem(player));
+        engine.addSystem(new WaterFloorSystem(player));
         engine.addSystem(new LevelGenerationSystem(lvlFactory));
 
-        // create some game objects
-        lvlFactory.createPlayer(atlas.findRegion("player"),cam);
-        lvlFactory.createFloor(atlas.findRegion("player"));
+        int floorWidth = (int) (40 * RenderingSystem.PPM);
+        int floorHeight = (int) (1 * RenderingSystem.PPM);
+        TextureRegion floorRegion = DFUtils.makeTextureRegion(floorWidth,floorHeight, "1133180");
+        lvlFactory.createFloor(floorRegion);
+
+        int wFloorWidth = (int) (40*RenderingSystem.PPM);
+        int wFloorHeight = (int) (10*RenderingSystem.PPM);
+        TextureRegion wFloorRegion = DFUtils.makeTextureRegion(wFloorWidth, wFloorHeight, "11113380");
+        lvlFactory.createWaterFloor(wFloorRegion);
+
+        int wallWidth = (int) (1*RenderingSystem.PPM);
+        int wallHeight = (int) (60*RenderingSystem.PPM);
+        TextureRegion wallRegion = DFUtils.makeTextureRegion(wallWidth, wallHeight, "222222FF");
+        lvlFactory.createWalls(wallRegion);
+
     }
 
     @Override
