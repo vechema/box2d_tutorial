@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.World;
 import com.box2d.tutorial.entity.components.B2dBodyComponent;
+import com.box2d.tutorial.entity.components.BulletComponent;
 import com.box2d.tutorial.entity.components.CollisionComponent;
 import com.box2d.tutorial.entity.components.EnemyComponent;
 import com.box2d.tutorial.entity.components.PlayerComponent;
@@ -33,12 +34,14 @@ public class LevelFactory {
     private TextureRegion floorTex;
     private TextureRegion enemyTex;
     private TextureRegion platformTex;
+    private TextureRegion bulletTex;
 
     public LevelFactory(PooledEngine en, TextureAtlas atlas) {
         engine = en;
         this.atlas = atlas;
         floorTex = DFUtils.makeTextureRegion(40* RenderingSystem.PPM, 0.5f*RenderingSystem.PPM, "111111FF");
         enemyTex = DFUtils.makeTextureRegion(1*RenderingSystem.PPM,1*RenderingSystem.PPM, "331111FF");
+        bulletTex = DFUtils.makeTextureRegion(10,10,"444444FF");
         platformTex = DFUtils.makeTextureRegion(2*RenderingSystem.PPM, 0.1f*RenderingSystem.PPM, "221122FF");
         world = new World(new Vector2(0,-10f), true);
         world.setContactListener(new B2dContactListener());
@@ -90,7 +93,7 @@ public class LevelFactory {
     }
 
     public Entity createPlatform(float x, float y){
-        System.out.println("Created normal platform");
+        //System.out.println("Created normal platform");
         Entity entity = engine.createEntity();
         B2dBodyComponent b2dbody = engine.createComponent(B2dBodyComponent.class);
         b2dbody.body = bodyFactory.makeBoxPolyBody(x, y, 1.5f, 0.2f, BodyFactory.STONE, BodyType.StaticBody);
@@ -108,7 +111,7 @@ public class LevelFactory {
     }
 
     public Entity createBouncyPlatform(float x, float y){
-        System.out.println("Created bouncy platform");
+        //System.out.println("Created bouncy platform");
         Entity entity = engine.createEntity();
         // create body component
         B2dBodyComponent b2dbody = engine.createComponent(B2dBodyComponent.class);
@@ -243,6 +246,7 @@ public class LevelFactory {
         TextureComponent texture = engine.createComponent(TextureComponent.class);
         EnemyComponent enemy = engine.createComponent(EnemyComponent.class);
         TypeComponent type = engine.createComponent(TypeComponent.class);
+        CollisionComponent colComp = engine.createComponent(CollisionComponent.class);
 
         b2dbody.body = bodyFactory.makeCirclePolyBody(x,y,0.5f, BodyFactory.STONE, BodyType.KinematicBody,true);
         position.position.set(x,y,0);
@@ -256,9 +260,40 @@ public class LevelFactory {
         entity.add(texture);
         entity.add(enemy);
         entity.add(type);
+        entity.add(colComp);
 
         engine.addEntity(entity);
 
+        return entity;
+    }
+
+    public Entity createBullet(float x, float y, float xVel, float yVel) {
+        Entity entity = engine.createEntity();
+        B2dBodyComponent b2dbody = engine.createComponent(B2dBodyComponent.class);
+        TransformComponent position = engine.createComponent(TransformComponent.class);
+        TextureComponent texture = engine.createComponent(TextureComponent.class);
+        TypeComponent type = engine.createComponent(TypeComponent.class);
+        CollisionComponent colComp = engine.createComponent(CollisionComponent.class);
+        BulletComponent bul = engine.createComponent(BulletComponent.class);
+
+        b2dbody.body = bodyFactory.makeCirclePolyBody(x,y,0.5f, BodyFactory.STONE, BodyType.DynamicBody,true);
+        b2dbody.body.setBullet(true); // increase physics computation to limit body travelling through other objects
+        bodyFactory.makeAllFixturesSensors(b2dbody.body); // make bullets sensors so they don't move player
+        position.position.set(x,y,0);
+        texture.region = bulletTex;
+        type.type = TypeComponent.BULLET;
+        b2dbody.body.setUserData(entity);
+        bul.xVel = xVel;
+        bul.yVel = yVel;
+
+        entity.add(bul);
+        entity.add(colComp);
+        entity.add(b2dbody);
+        entity.add(position);
+        entity.add(texture);
+        entity.add(type);
+
+        engine.addEntity(entity);
         return entity;
     }
 }

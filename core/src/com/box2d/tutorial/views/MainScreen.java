@@ -15,6 +15,7 @@ import com.box2d.tutorial.DFUtils;
 import com.box2d.tutorial.LevelFactory;
 import com.box2d.tutorial.controller.KeyboardController;
 import com.box2d.tutorial.entity.systems.AnimationSystem;
+import com.box2d.tutorial.entity.systems.BulletSystem;
 import com.box2d.tutorial.entity.systems.CollisionSystem;
 import com.box2d.tutorial.entity.systems.EnemySystem;
 import com.box2d.tutorial.entity.systems.LevelGenerationSystem;
@@ -56,15 +57,16 @@ public class MainScreen implements Screen {
         sb.setProjectionMatrix(cam.combined);
 
         engine.addSystem(new AnimationSystem());
-        engine.addSystem(new PhysicsSystem(lvlFactory.world));
+        engine.addSystem(new PhysicsSystem(lvlFactory.world, engine));
         engine.addSystem(renderingSystem);
         engine.addSystem(new PhysicsDebugSystem(lvlFactory.world, renderingSystem.getCamera()));
         engine.addSystem(new CollisionSystem());
-        engine.addSystem(new PlayerControlSystem(controller));
+        engine.addSystem(new PlayerControlSystem(controller, lvlFactory));
         engine.addSystem(new EnemySystem());
         player = lvlFactory.createPlayer(atlas.findRegion("player"),cam);
         engine.addSystem(new WallSystem(player));
         engine.addSystem(new WaterFloorSystem(player));
+        engine.addSystem(new BulletSystem(player));
         engine.addSystem(new LevelGenerationSystem(lvlFactory));
 
         int floorWidth = (int) (40 * RenderingSystem.PPM);
