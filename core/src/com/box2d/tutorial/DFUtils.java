@@ -76,6 +76,12 @@ public class DFUtils {
         return tex;
     }
 
+    public static TextureRegion makeTextureRegion(float f, float g, String hex) {
+        int fval = (int) f;
+        int gval = (int) g;
+        return makeTextureRegion(fval, gval, hex);
+    }
+
     public static Texture makeTexture(int width, int height, Color col){
         Texture tex;
         tex = new Texture(makePixMap(width,height,col));

@@ -16,6 +16,7 @@ import com.box2d.tutorial.LevelFactory;
 import com.box2d.tutorial.controller.KeyboardController;
 import com.box2d.tutorial.entity.systems.AnimationSystem;
 import com.box2d.tutorial.entity.systems.CollisionSystem;
+import com.box2d.tutorial.entity.systems.EnemySystem;
 import com.box2d.tutorial.entity.systems.LevelGenerationSystem;
 import com.box2d.tutorial.entity.systems.PhysicsDebugSystem;
 import com.box2d.tutorial.entity.systems.PhysicsSystem;
@@ -47,7 +48,7 @@ public class MainScreen implements Screen {
         boing = parent.assMan.manager.get("sounds/boing.wav", Sound.class);
         controller = new KeyboardController();
         engine = new PooledEngine();
-        lvlFactory = new LevelFactory(engine, atlas.findRegion("player"));
+        lvlFactory = new LevelFactory(engine, atlas);
 
         sb = new SpriteBatch();
         RenderingSystem renderingSystem = new RenderingSystem(sb);
@@ -60,6 +61,7 @@ public class MainScreen implements Screen {
         engine.addSystem(new PhysicsDebugSystem(lvlFactory.world, renderingSystem.getCamera()));
         engine.addSystem(new CollisionSystem());
         engine.addSystem(new PlayerControlSystem(controller));
+        engine.addSystem(new EnemySystem());
         player = lvlFactory.createPlayer(atlas.findRegion("player"),cam);
         engine.addSystem(new WallSystem(player));
         engine.addSystem(new WaterFloorSystem(player));
